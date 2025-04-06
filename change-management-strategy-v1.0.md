@@ -176,8 +176,9 @@ deploy_job:
 
 ### jgitver-maven-plugin
 
-`jgitver-maven-plugin`은 Git 저장소의 상태에 따라 Maven 프로젝트의 버전을 자동으로 채번하는 도구입니다. 이 플러그인은 Git 태그와
- 커밋을 기반으로 버전을 생성하여, 수동으로 버전을 관리할 필요 없이 일관된 버전 관리를 가능하게 합니다.
+[jgitver-maven-plugin](https://github.com/jgitver/jgitver-maven-plugin) 은 Git 저장소의 상태에 따라 Maven 프로젝트의 버전을
+자동으로 채번하는 도구입니다. 이 플러그인은 Git 태그와 커밋을 기반으로 버전을 생성하여, 수동으로 버전을 관리할 필요 없이 일관된 
+버전 관리를 가능하게 합니다.
 
 #### 주요 특징
 
@@ -188,6 +189,7 @@ deploy_job:
 #### 사용 방법
 
 1. `pom.xml` 파일에 `jgitver-maven-plugin`을 추가합니다.
+2. profile 을 local_enforce 로 설정하여 로컬 환경에서 자동으로 버전을 채번합니다.
 2. Git 저장소의 상태에 따라 자동으로 버전이 채번됩니다.
 3. Maven 빌드 시 자동으로 버전이 반영됩니다.
 
@@ -359,7 +361,7 @@ npx commit-and-tag-version
 
 ```mermaid
 flowchart LR
-  subgraph 여러 기능 개발
+  subgraph 여러 종류 기능 개발
     A((개발시작)) --> C[개발]
     C --> D{MR 요청}
   end
@@ -378,28 +380,33 @@ flowchart LR
 
 ### 개발 시작
 
-브랜치 전략에 따른 초기 브랜치 구성에 대한 설명을 포함합니다.
+1. Issue 등록: Gitlab/issue 를 등록, 변경 요건을 정리
+2. 브랜치 생성: master 브랜치로 부터 fix/* 또는 feat/* 브랜치를 생성
 
 ### 개발 및 versioning
 
-`jgitver-maven-plugin`을 활용한 버전 자동 채번 및 IntelliJ IDE 환경 설정으로 빌드시 자동 버전 반영 등을 설명합니다.
+1. 로컬 개발 환경에 생성된 브랜치를 check out
+2. `mvn validate` 를 실행하면, jgitver-maven-plugin 이 버전을 계산하여 생성한다.
+3. 변경 내용을 conventional commit 규칙에 맞게 작성한다.
 
 ### 스테이징 MR 및 versioning
 
-`jgitver-maven-plugin`을 활용한 버전 자동 채번 및 IntelliJ IDE 환경 설정으로 빌드시 자동 버전 반영 등을 설명하고, GitLab CI를
- 활용한 머지 테스트 후 완료합니다.
+1. 다음 배포를 위한 stg/* 브랜치가 없다면 생성
+2. feat/* 또는 fix/* 브랜치를 stg/* 브랜치로 Merge Request 생성
+3. 인스펙션 후 Approve 버튼을 클릭하면, gitlab runner 가 머지소스로 `mvn verify` 를 수행 
+4. 테스트 성공이면 머지를 완료
+5. 테스트 실패이면 돌아가 수정 후 다시 테스트를 수행
 
 ### 릴리즈 사전 검증 + CHANGELOG 생성 및 태깅
 
-`master` 브랜치 머지 후 이미지로 검증 후 정상이면, `commit-and-tag-version`을 활용한 CHANGELOG 및 태그를 생성합니다.
-
-### 통합 gitlab CI 설정
-
-GitLab CI 설정을 통해 자동화된 빌드, 테스트, 배포 파이프라인을 구성합니다.
+1. Release 요청되면, stg/* 브랜치를 master 브랜치로 Merge Request 생성
+2. 인스펙션 후 Approve 버튼을 클릭하면, gitlab runner 가 머지소스로 `mvn verify` 를 수행 
+3. 테스트 성공이면 `commit-and-tag-version` 을 실행하여 CHANGELOG 생성 및 태깅
+4. 테스트 실패이면 수정 후 다시 테스트를 수행
 
 ### 배포
 
-이전 단계와 연계하여 GitLab CI로 자동 배포 설정을 구성합니다.
+1. master 브랜치 `mvn deploy` 를 실행하여 배포
 
 
 ## 기대효과 및 주의사항
